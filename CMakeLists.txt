@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+find_package(OpenCV REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -118,6 +121,9 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  include_directories(${OpenCV_INCLUDE_DIRS})
+  include_directories(${Boost_INCLUDE_DIRS})
+  include_directories(/usr/include/eigen3)
 )
 
 ## Declare a C++ library
@@ -135,6 +141,11 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/ros_controller_node.cpp)
 
+add_executable(node_gridmap src/node_gridmap.cpp)
+add_executable(node_goal src/node_goal.cpp)
+add_executable(node_baselink src/node_baselink.cpp)
+add_executable(node_planner src/node_planner.cpp)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -149,6 +160,26 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+
+target_link_libraries(node_gridmap
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBS}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Eigen_LIBS}
+  grid_map
+)
+
+target_link_libraries(node_goal
+  ${catkin_LIBRARIES}
+)  
+target_link_libraries(node_baselink
+  ${catkin_LIBRARIES}
+)  
+target_link_libraries(node_planner
+  ${OpenCV_LIBS}
+  ${catkin_LIBRARIES}
+  grid_map
+)  
 
 #############
 ## Install ##
@@ -204,3 +235,5 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_subdirectory(src/basis_stuff)
