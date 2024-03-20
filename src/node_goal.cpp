@@ -14,7 +14,7 @@ int main(int argc, char** argv){
     int x = atoi(argv[1]);
     int y = atoi(argv[2]);
 
-    cout << "node_baselink is now starting..." << endl;
+    cout << "node_goal is now starting..." << endl;
     ros::init(argc,argv,"node_goal");
     ros::NodeHandle nh;
 
@@ -24,7 +24,7 @@ int main(int argc, char** argv){
 
     ros::Rate rate(10);
 
-    cout << "Base Link: (" << x << ";" << y << ")" << endl;
+    cout << "Goal: (" << x << ";" << y << ")" << endl;
     
 
     while (nh.ok()){

@@ -1,7 +1,10 @@
 #pragma once
 
+#include <Eigen/Core>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <boost/filesystem.hpp>
+#include <queue>
 
 namespace fs = boost::filesystem;
 using namespace Eigen;
@@ -20,6 +23,20 @@ struct GridMap{
 
     GridMap();
 
-    void loadFromImage(const fs::path& folderName);
+    void cv2vec(const cv::Mat& src, std::vector<uint8_t>& dst);
+    void vec2cv(const std::vector<uint8_t>& src, cv::Mat& dst);
     bool isImageFile(const fs::path& filePath);
-}
+    void loadFromVec(vector<uint8_t>,int rows,int cols);
+    void loadImage(const fs::path& folderName);
+    fs::path findImage(const fs::path& folder);
+    void processImage(const cv::Mat& img);
+    void computeDistanceMap();
+    void convertDistanceMap(const cv::Mat& distanceTransform);
+    void displayDistanceMap();
+    bool checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal); 
+    vector<pair<int, int>> findPath(pair<int, int> Start, pair<int, int> Goal);
+    
+
+  
+
+};

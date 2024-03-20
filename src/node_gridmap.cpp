@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include "base/grid_map.h"
+#include "basis_stuff/grid_map.h"
 #include "std_msgs/UInt8MultiArray.h"
 #include "std_msgs/Int32MultiArray.h"
 #include <iostream>
@@ -8,7 +8,7 @@
 int main(int argc, char** argv) {
    
     GridMap gridMap;
-    gridMap.loadFromImage("src/img_folder");
+    gridMap.loadImage("src/img_folder");
 
     vector<int> rowsAndCols(2);
     rowsAndCols[0]= gridMap.rows;

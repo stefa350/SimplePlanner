@@ -119,11 +119,11 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
   ${catkin_INCLUDE_DIRS}
   include_directories(${OpenCV_INCLUDE_DIRS})
   include_directories(${Boost_INCLUDE_DIRS})
   include_directories(/usr/include/eigen3)
+  
 )
 
 ## Declare a C++ library
