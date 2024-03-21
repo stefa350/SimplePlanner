@@ -1,7 +1,6 @@
 #include <iostream>
 #include <ros/ros.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 using namespace std;
 
 int main(int argc, char** argv){
@@ -18,28 +17,28 @@ int main(int argc, char** argv){
     ros::init(argc,argv,"node_goal");
     ros::NodeHandle nh;
 
-    tf2_ros::TransformBroadcaster br;
-    geometry_msgs::TransformStamped transformStamped;
-
+    ros::Publisher pub = nh.advertise<geometry_msgs::PoseStamped>("goal", 10);
 
     ros::Rate rate(10);
 
     cout << "Goal: (" << x << ";" << y << ")" << endl;
     
 
-    while (nh.ok()){
-        transformStamped.header.stamp = ros::Time::now();
-        transformStamped.header.frame_id = "map";
-        transformStamped.child_frame_id = "base_link";
-        transformStamped.transform.translation.x = y;
-        transformStamped.transform.translation.y = x;
-        transformStamped.transform.translation.z = 0.0;
-        transformStamped.transform.rotation.x = 0.0;
-        transformStamped.transform.rotation.y = 0.0;
-        transformStamped.transform.rotation.z = 0.0;
-        transformStamped.transform.rotation.w = 1.0;
+    while (ros::ok()){
+        geometry_msgs::PoseStamped poseStamped;
+        poseStamped.header.stamp = ros::Time::now();
+        poseStamped.header.frame_id = "map";
+        //poseStamped.child_frame_id = "goal";
+        poseStamped.pose.position.x = x;
+        poseStamped.pose.position.y =y;
+        poseStamped.pose.position.z = 0.0;
+        poseStamped.pose.orientation.x = 0.0;
+        poseStamped.pose.orientation.y = 0.0;
+        poseStamped.pose.orientation.z = 0.0;
+        poseStamped.pose.orientation.w = 1.0;
 
-        br.sendTransform(transformStamped);
+        pub.publish(poseStamped);
+        
         rate.sleep();
     }
     return 0;

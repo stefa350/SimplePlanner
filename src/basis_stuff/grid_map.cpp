@@ -85,20 +85,6 @@ void GridMap::loadFromVec(std::vector<uint8_t> src, int Rows,int Cols){
     vec2cv(gridMapArray,gridMapImage);
 }
 
-bool GridMap::checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal) {
-    if (gridMapArray[start.first * cols + start.second] != 255) {
-        cerr << "Start position is not traversable. Value: ";
-        cerr << gridMapArray[start.first * cols + start.second];
-        return false;
-    }
-    if (gridMapArray[goal.first * cols + goal.second] != 255) {
-        cerr << "Goal position (" << goal.first << ", " << goal.second << ") is not traversable. Value: ";
-        cerr << to_string(gridMapArray[goal.first * cols + goal.second]);
-        return false;
-    }
-    return true;
-}
-
 
 void GridMap::computeDistanceMap() {
     // Converti la griglia della mappa in una matrice OpenCV
@@ -123,5 +109,149 @@ void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
     }
 }
 
+int GridMap::actionCost(int x,int y){  //with (x,y) the coords to reach
+    int distanceCost = exp(0.5*(maxDist - distanceMap(x, y))); //exp to highlight the importance of small values of distance cost
+    return distanceCost + 1;
+}
+
+bool GridMap::isValid(int x,int y) {
+    return x >= 0 && x < rows && y >= 0 && y < cols && gridMapArray[x*cols+y] == 255;
+}
+
+int GridMap::heuristic(int x,int y){
+    return abs(x - goal.first) + abs(y - goal.second);
+}
+
+bool GridMap::checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal) {
+    if (gridMapArray[start.first * cols + start.second] != 255) {
+        cerr << "Start position is not traversable. Value: ";
+        cerr << gridMapArray[start.first * cols + start.second];
+        return false;
+    }
+    if (gridMapArray[goal.first * cols + goal.second] != 255) {
+        cerr << "Goal position (" << goal.first << ", " << goal.second << ") is not traversable. Value: ";
+        cerr << to_string(gridMapArray[goal.first * cols + goal.second]);
+        return false;
+    }
+    return true;
+}
+
+vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Goal) {
+
+    //set start and goal
+    start = Start;
+    goal = Goal;
+
+    vector<pair<int, int>> path;
+    if(checkValidStartAndGoal(start,goal)){
+        // Define vectors for keeping track of visited cells and parent cells
+        vector<vector<bool>> visited(rows, vector<bool>(cols,false));
+        vector<vector<pair<int, int>>> parent(rows, vector<pair<int, int>>(cols, {-1, -1}));
+
+        //gscore = the cost from getting from start node to that node
+        vector<vector<int>> gScore(rows, vector<int>(cols, INT_MAX));
+        
+        //fscore = the cost from getting from the start node to the goal passing trhough that node (uses heuristic so is estimated)
+        vector<vector<int>> fScore(rows, vector<int>(cols, INT_MAX));
+        
+
+        //initializing gScore and fScore
+        gScore[start.first][start.second] = 0;
+        
+        fScore[start.first][start.second] = heuristic(start.first,start.second);
+
+        
+        // Create a set of pairs
+        std::set<pair<int, int>> openSet;
+
+        // Add the starting cell to the open set
+        openSet.insert(start);
+
+        // Define vectors for possible movements
+        vector<pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+        int min_fScore,tentative_gScore;
+        pair<int, int> min_fScoreNode;
+        pair<int, int> current,neighbour;
+        
+        int current_fScore;
+
+        while (!openSet.empty()) {
+            //std::cout << "Size of the set: " << openSet.size() << std::endl;
+            // finding the cell with the lowest fscore
+            min_fScore = INT_MAX;
+            for (const auto& node : openSet) {
+                current_fScore = fScore[node.first][node.second]; 
+                
+                if (current_fScore < min_fScore) {
+                    min_fScore = current_fScore;
+                    min_fScoreNode = node; // Update min_fScoreNode
+                }
+            }
+            
+            current = min_fScoreNode;
+
+            if (current == goal){
+                // Reconstruct path
+                cout <<"path found"<<endl;
+                while (current != start) {
+                    path.push_back(current);
+                    current = parent[current.first][current.second];
+                }
+                path.push_back(start);
+                reverse(path.begin(), path.end());
+                return path;
+            }
+            openSet.erase(current);
+            visited[current.first][current.second]=true;
+            
+            for (auto direction : directions ){
+                neighbour = {current.first+direction.first,current.second+direction.second};
+                if (isValid(neighbour.first,neighbour.second)){
+                    tentative_gScore = gScore[current.first][current.second]+actionCost(neighbour.first,neighbour.second);
+                    //cerr<<"g score:"<<tentative_gScore<<endl;
+                    //cerr<<gScore[0][0];
+                    if (tentative_gScore < gScore[neighbour.first][neighbour.second]){
+                        // This path to the neighbor is better than any previous one
+                        // Record it!
+                        parent[neighbour.first][neighbour.second] = current;
+                        gScore[neighbour.first][neighbour.second] = tentative_gScore;
+                        fScore[neighbour.first][neighbour.second] = gScore[neighbour.first][neighbour.second] + heuristic(neighbour.first,neighbour.second);
+                        
+                        openSet.insert(neighbour);
+
+                    }
+
+                }
+
+            }
+        }
+        cerr<<"path not found";
+        return path; //failure empty path
+    } else return path;
+}
+
+
+void GridMap::displayPath(vector<pair<int, int>> path){
+    //convert to rgb
+    cv::Mat gridMapImageWithPath(rows, cols, CV_8UC3);
+    
+    // Convert grayscale to RGB
+    cv::cvtColor(gridMapImage, gridMapImageWithPath, cv::COLOR_GRAY2RGB);
+
+    for (auto cell:path){
+        cv::Vec3b& pixel = gridMapImageWithPath.at<cv::Vec3b>(cell.first, cell.second);
+
+        // Modify the pixel values (BGR order)
+        pixel[0] = 0;  // Blue
+        pixel[1] = 0;    // Green
+        pixel[2] = 255;    // Red
+    }
+    // Display the distance map
+    cv::namedWindow("Path", cv::WINDOW_AUTOSIZE);
+    cv::imshow("Path", gridMapImageWithPath);
+    cv::waitKey(0); // Wait for a key press
+    cv::destroyWindow("Path");
+}
 
 

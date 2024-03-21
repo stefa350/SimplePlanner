@@ -35,7 +35,10 @@ struct GridMap{
     void displayDistanceMap();
     bool checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal); 
     vector<pair<int, int>> findPath(pair<int, int> Start, pair<int, int> Goal);
-    
+    int actionCost(int x,int y);
+    bool isValid(int x,int y);
+    int heuristic(int x,int y);
+    void displayPath(vector<pair<int, int>> path);
 
   
 
