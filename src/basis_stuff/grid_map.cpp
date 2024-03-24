@@ -1,11 +1,13 @@
 #include "grid_map.h"
 #include <boost/filesystem.hpp>
+#include "geometry_msgs/PoseStamped.h"
+
 using namespace std;
 namespace fs = boost::filesystem;
 using namespace Eigen;
 
 GridMap::GridMap(){
-    cout << "Initializing the GridMap..." << endl;
+    std::cout << "Initializing the GridMap..." << endl;
 };
 
 void GridMap::cv2vec(const cv::Mat& src, std::vector<uint8_t>& dst) {
@@ -49,12 +51,12 @@ bool GridMap::isImageFile(const fs::path& filePath) {
 void GridMap::loadImage(const fs::path& folder){
     fs::path imgPath = findImage(folder);
     if(!imgPath.empty()){
-        cout << "Image found: " << imgPath <<endl;
+        std::cout << "Image found: " << imgPath <<endl;
         cv::Mat loadedImg = cv::imread(imgPath.string(), cv::IMREAD_GRAYSCALE);
         if(loadedImg.empty()){
             throw runtime_error("Error loading the image");
         }else{
-            cout << "Image loaded successfully" << endl;
+            std::cout << "Image loaded successfully" << endl;
             processImage(loadedImg);
         }
     } else {
@@ -85,7 +87,7 @@ void GridMap::loadFromVec(std::vector<uint8_t> src, int Rows,int Cols){
     vec2cv(gridMapArray,gridMapImage);
 }
 
-
+/*
 void GridMap::computeDistanceMap() {
     // Converti la griglia della mappa in una matrice OpenCV
     cv::Mat gridMapCV(rows, cols, CV_8U);
@@ -107,7 +109,43 @@ void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
             distanceMap(i, j) = distanceTransform.at<float>(i, j);
         }
     }
+}*/
+
+
+void GridMap::computeDistanceMap(const nav_msgs::OccupancyGrid gridmapoc) {
+    // Converti l'OccupancyGrid in una matrice OpenCV
+    gridmapocc = gridmapoc;
+    cv::Mat gridMapCV(gridmapocc.info.height, gridmapocc.info.width, CV_8UC1);
+    for (int i = 0; i < gridMapCV.rows; ++i) {
+        for (int j = 0; j < gridMapCV.cols; ++j) {
+            gridMapCV.at<uchar>(i, j) = gridmapocc.data[i * gridMapCV.cols + j];
+        }
+    }
+
+    // Calcola la trasformata di distanza
+    cv::Mat distance;
+    cv::distanceTransform(gridMapCV, distance, cv::DIST_L2, cv::DIST_MASK_PRECISE);
+    cv::minMaxLoc(distance, &minDist, &maxDist);
+
+    // Converti la trasformata di distanza nel formato Eigen
+    convertDistanceMap(distance);
 }
+
+void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
+    distanceMap.resize(distanceTransform.rows, distanceTransform.cols);
+    for (int i = 0; i < distanceTransform.rows; ++i) {
+        for (int j = 0; j < distanceTransform.cols; ++j) {
+            distanceMap(i, j) = distanceTransform.at<float>(i, j);
+        }
+    }
+}
+
+void GridMap::setStartGoal(pair<int, int> start, pair<int, int> goal, geometry_msgs::PoseStamped baseLinkPose,   geometry_msgs::PoseStamped goalPose){
+    start = std::make_pair(baseLinkPose.pose.position.x, baseLinkPose.pose.position.y);
+    goal  = std::make_pair(goalPose.pose.position.x, goalPose.pose.position.y);
+
+}
+
 
 int GridMap::actionCost(int x,int y){  //with (x,y) the coords to reach
     int distanceCost = exp(0.5*(maxDist - distanceMap(x, y))); //exp to highlight the importance of small values of distance cost
@@ -115,7 +153,8 @@ int GridMap::actionCost(int x,int y){  //with (x,y) the coords to reach
 }
 
 bool GridMap::isValid(int x,int y) {
-    return x >= 0 && x < rows && y >= 0 && y < cols && gridMapArray[x*cols+y] == 255;
+    bool tt = x >= 0 && x < rows && y >= 0 && y < cols && gridmapocc.data[x * gridmapocc.info.width + y] == 0;
+    return tt;
 }
 
 int GridMap::heuristic(int x,int y){
@@ -123,33 +162,37 @@ int GridMap::heuristic(int x,int y){
 }
 
 bool GridMap::checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal) {
-    if (gridMapArray[start.first * cols + start.second] != 255) {
+    if (gridmapocc.data[start.first + gridmapocc.info.width * start.second] >= 50) {
         cerr << "Start position is not traversable. Value: ";
-        cerr << gridMapArray[start.first * cols + start.second];
+        cerr << gridmapocc.data[0];
         return false;
-    }
-    if (gridMapArray[goal.first * cols + goal.second] != 255) {
-        cerr << "Goal position (" << goal.first << ", " << goal.second << ") is not traversable. Value: ";
+    }else std::cout << "Start position is valid" << endl;
+    if (gridmapocc.data[goal.first + gridmapocc.info.width * goal.second] >= 50) {
+        cerr << "Goal position is not traversable. Value: ";
         cerr << to_string(gridMapArray[goal.first * cols + goal.second]);
         return false;
-    }
+    }else std::cout << "Goal position is valid" << endl;
+    std::cout << "Valids" << endl;
     return true;
 }
 
 vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Goal) {
-
+    rows = gridmapocc.info.height;
+    cols = gridmapocc.info.width;
     //set start and goal
     start = Start;
     goal = Goal;
-
+    std::cout << "Starting findPath" << endl;
     vector<pair<int, int>> path;
     if(checkValidStartAndGoal(start,goal)){
         // Define vectors for keeping track of visited cells and parent cells
         vector<vector<bool>> visited(rows, vector<bool>(cols,false));
+        
         vector<vector<pair<int, int>>> parent(rows, vector<pair<int, int>>(cols, {-1, -1}));
 
         //gscore = the cost from getting from start node to that node
         vector<vector<int>> gScore(rows, vector<int>(cols, INT_MAX));
+        
         
         //fscore = the cost from getting from the start node to the goal passing trhough that node (uses heuristic so is estimated)
         vector<vector<int>> fScore(rows, vector<int>(cols, INT_MAX));
@@ -157,9 +200,9 @@ vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Go
 
         //initializing gScore and fScore
         gScore[start.first][start.second] = 0;
-        
-        fScore[start.first][start.second] = heuristic(start.first,start.second);
 
+        fScore[start.first][start.second] = heuristic(start.first,start.second);
+        std::cout << "heuristic  found" << endl;
         
         // Create a set of pairs
         std::set<pair<int, int>> openSet;
@@ -177,7 +220,7 @@ vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Go
         int current_fScore;
 
         while (!openSet.empty()) {
-            //std::cout << "Size of the set: " << openSet.size() << std::endl;
+            //std::::cout << "Size of the set: " << openSet.size() << std::endl;
             // finding the cell with the lowest fscore
             min_fScore = INT_MAX;
             for (const auto& node : openSet) {
@@ -193,13 +236,13 @@ vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Go
 
             if (current == goal){
                 // Reconstruct path
-                cout <<"path found"<<endl;
+                std::cout <<"path found"<<endl;
                 while (current != start) {
                     path.push_back(current);
                     current = parent[current.first][current.second];
                 }
                 path.push_back(start);
-                reverse(path.begin(), path.end());
+                std::reverse(path.begin(), path.end());
                 return path;
             }
             openSet.erase(current);

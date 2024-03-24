@@ -5,6 +5,9 @@
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
 #include <queue>
+#include <nav_msgs/OccupancyGrid.h>
+#include "geometry_msgs/PoseStamped.h"
+
 
 namespace fs = boost::filesystem;
 using namespace Eigen;
@@ -20,6 +23,7 @@ struct GridMap{
     double minDist, maxDist;
     pair<int, int> start;
     pair<int, int> goal;
+    nav_msgs::OccupancyGrid gridmapocc;
 
     GridMap();
 
@@ -30,7 +34,7 @@ struct GridMap{
     void loadImage(const fs::path& folderName);
     fs::path findImage(const fs::path& folder);
     void processImage(const cv::Mat& img);
-    void computeDistanceMap();
+    void computeDistanceMap(nav_msgs::OccupancyGrid gridmapocc);
     void convertDistanceMap(const cv::Mat& distanceTransform);
     void displayDistanceMap();
     bool checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal); 
@@ -39,6 +43,7 @@ struct GridMap{
     bool isValid(int x,int y);
     int heuristic(int x,int y);
     void displayPath(vector<pair<int, int>> path);
+    void setStartGoal(pair<int, int> start, pair<int, int> goal, geometry_msgs::PoseStamped baseLinkPose,   geometry_msgs::PoseStamped goalPose);
 
   
 

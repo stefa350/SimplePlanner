@@ -106,11 +106,9 @@ int main(int argc, char** argv) {
 
             int index = point.first + point.second * rowsAndColsMsg.data[0];
 
-            if (index >= 0 && index < grid_msg.data.size()) {
+            
             // Set the cell at the calculated index to occupied
             grid_msg.data[index] = 100;
-            } else 
-                ROS_WARN("Index out of bounds");
             
         }
 
