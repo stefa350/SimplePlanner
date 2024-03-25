@@ -116,7 +116,6 @@ void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
 
 void GridMap::computeDistanceMap(const nav_msgs::OccupancyGrid gridmapoc) {
     // Converti l'OccupancyGrid in una matrice OpenCV
-    gridmapocc = gridmapoc;
     cv::Mat gridMapCV(gridmapocc.info.height, gridmapocc.info.width, CV_8UC1);
     
     for (int i = 0; i < gridMapCV.rows; ++i) {
@@ -202,8 +201,6 @@ vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Go
     cols = gridmapocc.info.width;
     //cout << gridmapocc.info.width << endl;
     //set start and goal
-    start = Start;
-    goal = Goal;
     std::cout << "Starting findPath" << endl;
     vector<pair<int, int>> path;
     if(checkValidStartAndGoal(start,goal)){

@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
     GridMap gridMap;
     gridMap.loadImage("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder");
 
-    pair<int, int> start = {900,900};
-    pair<int, int> goal = {1000,1000};
+    pair<int, int> start = {320,290};
+    pair<int, int> goal = {1600,290};
     gridMap.setStartGoal(start,goal);
 
 
