@@ -93,7 +93,11 @@ int main(int argc, char** argv)
 
   while (ros::ok()) {
     ros::spinOnce(); 
-    gridMap.setStartGoal(start,goal,baseLinkPose,goalPose);
+    gridMap.setStartGoal(start,goal,baseLinkPose, goalPose);
+    start = std::make_pair(baseLinkPose.pose.position.x, baseLinkPose.pose.position.y);
+    goal  = std::make_pair(goalPose.pose.position.x, goalPose.pose.position.y);
+
+
     
     if (baseLinkFlag==true && goalFlag==true && baseLinkAndGoalReceived==false){
         ROS_INFO("goal and baselink received");

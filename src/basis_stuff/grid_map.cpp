@@ -111,11 +111,14 @@ void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
     }
 }*/
 
+    
+
 
 void GridMap::computeDistanceMap(const nav_msgs::OccupancyGrid gridmapoc) {
     // Converti l'OccupancyGrid in una matrice OpenCV
     gridmapocc = gridmapoc;
     cv::Mat gridMapCV(gridmapocc.info.height, gridmapocc.info.width, CV_8UC1);
+    
     for (int i = 0; i < gridMapCV.rows; ++i) {
         for (int j = 0; j < gridMapCV.cols; ++j) {
             gridMapCV.at<uchar>(i, j) = gridmapocc.data[i * gridMapCV.cols + j];
@@ -127,9 +130,17 @@ void GridMap::computeDistanceMap(const nav_msgs::OccupancyGrid gridmapoc) {
     cv::distanceTransform(gridMapCV, distance, cv::DIST_L2, cv::DIST_MASK_PRECISE);
     cv::minMaxLoc(distance, &minDist, &maxDist);
 
+    distanceMap.resize(distance.rows, distance.cols);
+    for (int i = 0; i < distance.rows; ++i) {
+        for (int j = 0; j < distance.cols; ++j) {
+            distanceMap(i, j) = distance.at<float>(i, j);
+        }
+    }
+
     // Converti la trasformata di distanza nel formato Eigen
     convertDistanceMap(distance);
 }
+
 
 void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
     distanceMap.resize(distanceTransform.rows, distanceTransform.cols);
@@ -140,10 +151,14 @@ void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
     }
 }
 
-void GridMap::setStartGoal(pair<int, int> start, pair<int, int> goal, geometry_msgs::PoseStamped baseLinkPose,   geometry_msgs::PoseStamped goalPose){
+void GridMap::setStartGoal(pair<int, int> start, pair<int, int> goal, geometry_msgs::PoseStamped baseLinkPose, geometry_msgs::PoseStamped goalPose){
     start = std::make_pair(baseLinkPose.pose.position.x, baseLinkPose.pose.position.y);
     goal  = std::make_pair(goalPose.pose.position.x, goalPose.pose.position.y);
 
+}
+
+void GridMap::setOccupancy(nav_msgs::OccupancyGrid grid){
+    gridmapocc = grid;
 }
 
 
@@ -154,6 +169,7 @@ int GridMap::actionCost(int x,int y){  //with (x,y) the coords to reach
 
 bool GridMap::isValid(int x,int y) {
     bool tt = x >= 0 && x < rows && y >= 0 && y < cols && gridmapocc.data[x * gridmapocc.info.width + y] == 0;
+    //cout << tt << endl;
     return tt;
 }
 
@@ -162,7 +178,10 @@ int GridMap::heuristic(int x,int y){
 }
 
 bool GridMap::checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal) {
-    if (gridmapocc.data[start.first + gridmapocc.info.width * start.second] >= 50) {
+    //cerr << "start.first: " << goal.first << ", start.second: " << goal.second << ", cols: " << cols << endl;
+    //cerr << "Data size: " << gridmapocc.data.size() << endl; // Assicurati che ci siano dati nell'array
+
+    if (gridmapocc.data[start.first + cols * start.second] >= 50) {
         cerr << "Start position is not traversable. Value: ";
         cerr << gridmapocc.data[0];
         return false;
@@ -172,13 +191,14 @@ bool GridMap::checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal) 
         cerr << to_string(gridMapArray[goal.first * cols + goal.second]);
         return false;
     }else std::cout << "Goal position is valid" << endl;
-    std::cout << "Valids" << endl;
+    //std::cout << "Valids" << endl;
     return true;
 }
 
 vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Goal) {
     rows = gridmapocc.info.height;
     cols = gridmapocc.info.width;
+    //cout << gridmapocc.info.width << endl;
     //set start and goal
     start = Start;
     goal = Goal;
@@ -202,7 +222,7 @@ vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Go
         gScore[start.first][start.second] = 0;
 
         fScore[start.first][start.second] = heuristic(start.first,start.second);
-        std::cout << "heuristic  found" << endl;
+        //std::cout << "heuristic  found" << endl;
         
         // Create a set of pairs
         std::set<pair<int, int>> openSet;
@@ -218,7 +238,7 @@ vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Go
         pair<int, int> current,neighbour;
         
         int current_fScore;
-
+        
         while (!openSet.empty()) {
             //std::::cout << "Size of the set: " << openSet.size() << std::endl;
             // finding the cell with the lowest fscore

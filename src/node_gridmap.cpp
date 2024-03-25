@@ -59,13 +59,19 @@ int main(int argc, char** argv) {
         return -1;
     }else cout << "ok" << endl;
 
-
+    
     nav_msgs::OccupancyGrid grid = imageToOccupancyGrid(img);
+    gridMap.setOccupancy(grid);
+    gridMap.computeDistanceMap(grid);
     ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>("map",10);
+    vector<pair<int, int>> path;
+    pair<int, int> start = {0,0};
+    pair<int, int> goal = {1900,100};
+    path = gridMap.findPath(start,goal);
 
     
     // Set the publishing rate
-    ros::Rate rate(10); // 1 Hz
+    ros::Rate rate(80); // 1 Hz
 
     
 
@@ -79,9 +85,8 @@ int main(int argc, char** argv) {
         // Create the message object
         std_msgs::Int32MultiArray rowsAndColsMsg;
         rowsAndColsMsg.data = rowsAndCols;
-        pair<int, int> start, goal;
-        vector<pair<int, int>> path;
-        path = gridMap.findPath(start,goal);
+        
+
 
         nav_msgs::OccupancyGrid grid_msg;
         grid_msg.header.stamp = ros::Time::now();
