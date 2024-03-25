@@ -168,11 +168,10 @@ int GridMap::actionCost(int x,int y){  //with (x,y) the coords to reach
     return distanceCost + 1;
 }
 
-bool GridMap::isValid(int x,int y) {
-    bool tt = x >= 0 && x < rows && y >= 0 && y < cols && gridmapocc.data[x * gridmapocc.info.width + y] == 0;
-    //cout << tt << endl;
-    return tt;
+bool GridMap::isValid(int x, int y) {
+    return x >= 0 && x < cols && y >= 0 && y < rows && gridmapocc.data[y * gridmapocc.info.width + x] == 0;
 }
+
 
 int GridMap::heuristic(int x,int y){
     return abs(x - goal.first) + abs(y - goal.second);

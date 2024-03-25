@@ -142,9 +142,6 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/ros_controller_node.cpp)
 
 add_executable(node_gridmap src/node_gridmap.cpp)
-add_executable(node_goal src/node_goal.cpp)
-add_executable(node_baselink src/node_baselink.cpp)
-add_executable(node_planner src/node_planner.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -168,18 +165,6 @@ target_link_libraries(node_gridmap
   ${Eigen_LIBS}
   grid_map
 )
-
-target_link_libraries(node_goal
-  ${catkin_LIBRARIES}
-)  
-target_link_libraries(node_baselink
-  ${catkin_LIBRARIES}
-)  
-target_link_libraries(node_planner
-  ${OpenCV_LIBS}
-  ${catkin_LIBRARIES}
-  grid_map
-)  
 
 #############
 ## Install ##

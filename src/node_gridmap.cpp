@@ -74,6 +74,12 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "node_gridmap");
     ros::NodeHandle nh;
 
+
+    ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>("map",20);
+    vector<pair<int, int>> path_;
+
+    ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("path", 20);
+
     // Define the topic name
    // std::string topic_name = "gridmap";
 
@@ -83,7 +89,7 @@ int main(int argc, char** argv) {
 
 
     ////////////////////////////////////////////
-    cv::Mat img = cv::imread("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder/labirinto.jpg", cv::IMREAD_GRAYSCALE);
+    cv::Mat img = cv::imread("/ros_controller/src/img_folder/labirinto.jpg", cv::IMREAD_GRAYSCALE);
     if(img.empty()){
         ROS_ERROR("Failed to load img");
         return -1;
@@ -93,11 +99,6 @@ int main(int argc, char** argv) {
     nav_msgs::OccupancyGrid grid = imageToOccupancyGrid(img);
     gridMap.setOccupancy(grid);
     gridMap.computeDistanceMap(grid);
-    ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>("map",10);
-    vector<pair<int, int>> path_;
-
-    ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("path", 10);
-
 
 
     path_ = gridMap.findPath(start,goal);
