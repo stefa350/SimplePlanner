@@ -4,7 +4,7 @@
 using namespace std;
 
 int main(int argc, char** argv){
-
+/*
     if (argc != 3) {
         cerr << "Usage: rosrun <package_name> node_goal <x_coordinate> <y_coordinate>" << endl;
         return 1;
@@ -40,7 +40,7 @@ int main(int argc, char** argv){
         pub.publish(poseStamped);
         
         rate.sleep();
-    }
+    }*/
     return 0;
 
 }

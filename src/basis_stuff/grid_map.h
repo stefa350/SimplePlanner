@@ -43,7 +43,7 @@ struct GridMap{
     bool isValid(int x,int y);
     int heuristic(int x,int y);
     void displayPath(vector<pair<int, int>> path);
-    void setStartGoal(pair<int, int> start, pair<int, int> goal, geometry_msgs::PoseStamped baseLinkPose,   geometry_msgs::PoseStamped goalPose);
+    void setStartGoal(pair<int, int> start, pair<int, int> goal);
     void setOccupancy(nav_msgs::OccupancyGrid grid);
   
 

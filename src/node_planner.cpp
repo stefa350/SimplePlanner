@@ -8,7 +8,7 @@
 #include <nav_msgs/Path.h> 
 
 using namespace std;
-
+/*
 bool gridMapFlag = false;
 bool baseLinkFlag = false;
 bool goalFlag = false;
@@ -16,8 +16,6 @@ bool baseLinkAndGoalReceived = false;
 bool RowsAndColsFlag = false;
 bool gridMapOccFlag = false;
 GridMap gridMap;
-pair<int, int> start;
-pair<int, int>  goal;
 vector<uint8_t> gridMapMsg;
 vector<int>RowsAndColsMsg;
 nav_msgs::OccupancyGrid gridmapocc;
@@ -49,11 +47,12 @@ void gridMapOccCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
     gridMapOccFlag = true;
 
 }
-
+*/
 
 
 int main(int argc, char** argv)
 {
+    /*
   std::cerr<<"node_planner starting"<<endl;
 
   ros::init(argc, argv, "node_planner");
@@ -63,15 +62,15 @@ int main(int argc, char** argv)
   //tf2_ros::TransformListener tfListener(tfBuffer);
   
   // Create a subscriber for UInt8MultiArray messages
-  ros::Subscriber sub = nh.subscribe("gridmap", 10, gridMapCallback);
-  ros::Subscriber sub2 = nh.subscribe("rowscols", 10, rowsAndColsCallback);
+  //ros::Subscriber sub = nh.subscribe("gridmap", 10, gridMapCallback);
+  //ros::Subscriber sub2 = nh.subscribe("rowscols", 10, rowsAndColsCallback);
 
   ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("path", 1);
 
   geometry_msgs::PoseStamped goalPose;
   geometry_msgs::PoseStamped baseLinkPose;
 
-  ros::Subscriber goal_sub = nh.subscribe<geometry_msgs::PoseStamped>("goal",1, [&](const geometry_msgs::PoseStamped::ConstPtr& msg) {
+  /*ros::Subscriber goal_sub = nh.subscribe<geometry_msgs::PoseStamped>("goal",1, [&](const geometry_msgs::PoseStamped::ConstPtr& msg) {
     goalPose.pose = msg->pose;
 
     goalFlag = true;
@@ -80,8 +79,8 @@ int main(int argc, char** argv)
   ros::Subscriber base_link_sub = nh.subscribe<geometry_msgs::PoseStamped>("base_link", 1, [&](const geometry_msgs::PoseStamped::ConstPtr& msg) {
     baseLinkPose.pose = msg->pose;
     baseLinkFlag = true;
-  });
-
+  });*/
+/*
   ros::Subscriber sub_occ = nh.subscribe("map", 10, gridMapOccCallback);
   
 
@@ -93,15 +92,6 @@ int main(int argc, char** argv)
 
   while (ros::ok()) {
     ros::spinOnce(); 
-    gridMap.setStartGoal(start,goal,baseLinkPose, goalPose);
-    start = std::make_pair(baseLinkPose.pose.position.x, baseLinkPose.pose.position.y);
-    goal  = std::make_pair(goalPose.pose.position.x, goalPose.pose.position.y);
-
-
-    
-    if (baseLinkFlag==true && goalFlag==true && baseLinkAndGoalReceived==false){
-        ROS_INFO("goal and baselink received");
-        baseLinkAndGoalReceived = true;};
     if (gridMapFlag==true && baseLinkFlag==true && goalFlag==true && RowsAndColsFlag && gridMapOccFlag){
         //gridMap.loadFromVec(gridMapMsg,RowsAndColsMsg[0],RowsAndColsMsg[1]);
         gridMap.computeDistanceMap(gridmapocc);
@@ -136,6 +126,6 @@ int main(int argc, char** argv)
     
 
     rate.sleep();
-  }
+  }*/
   return 0;
 }

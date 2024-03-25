@@ -151,9 +151,11 @@ void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
     }
 }
 
-void GridMap::setStartGoal(pair<int, int> start, pair<int, int> goal, geometry_msgs::PoseStamped baseLinkPose, geometry_msgs::PoseStamped goalPose){
-    start = std::make_pair(baseLinkPose.pose.position.x, baseLinkPose.pose.position.y);
-    goal  = std::make_pair(goalPose.pose.position.x, goalPose.pose.position.y);
+void GridMap::setStartGoal(pair<int, int> Start, pair<int, int> Goal){
+    start = Start;
+    goal  = Goal;
+    std::cout << start.first << endl;
+    cout << goal.first << endl;
 
 }
 
