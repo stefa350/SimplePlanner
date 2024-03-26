@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
     GridMap gridMap;
     gridMap.loadImage("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder");
 
-    pair<int, int> start = {640,640};  
-    pair<int, int> goal = {30,30};
+    pair<int, int> start = {10,10};  
+    pair<int, int> goal = {1279,1279};
     gridMap.setStartGoal(start,goal);
 
 
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("path", 10);
 
     
-    cv::Mat img = cv::imread("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder/labirinto.jpg", cv::IMREAD_GRAYSCALE);
+    cv::Mat img = cv::imread("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder/labirinto.jpeg", cv::IMREAD_GRAYSCALE);
     if(img.empty()){
         ROS_ERROR("Failed to load img");
         return -1;

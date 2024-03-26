@@ -134,12 +134,13 @@ void GridMap::setStartGoal(pair<int, int> Start, pair<int, int> Goal){
 
 void GridMap::setOccupancy(nav_msgs::OccupancyGrid grid){
     gridmapocc = grid;
+    
 }
 
 
 int GridMap::actionCost(int x,int y){  //with (x,y) the coords to reach
 
-    int distanceCost = exp(0.5*(maxDist - distanceMap(x, y))); //exp to highlight the importance of small values of distance cost
+    int distanceCost = exp((maxDist - distanceMap(x, y))); //exp to highlight the importance of small values of distance cost
     
     return distanceCost + 1;
 }
@@ -162,14 +163,20 @@ bool GridMap::checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal) 
     //cerr << "start.first: " << goal.first << ", start.second: " << goal.second << ", cols: " << cols << endl;
     //cerr << "Data size: " << gridmapocc.data.size() << endl; // Assicurati che ci siano dati nell'array
 
-    if (gridmapocc.data[start.first + cols * start.second] == 100 ) {
-        cerr << "Start position is not traversable. Value: ";
-        //cerr << gridmapocc.data[0];
+    if (start.first < 0 || start.second < 0 || gridmapocc.data[start.first + cols * start.second] == 100 || start.first >= gridmapocc.info.width || start.second >= gridmapocc.info.height) {
+        cerr << "Start position is not traversable or it is out of bounds. ";
+        
         return false;
     }else std::cout << "Start position is valid" << endl;
-    if (gridmapocc.data[goal.first + gridmapocc.info.width * goal.second] == 100) {
-        cerr << "Goal position is not traversable. Value: ";
-        //cerr << to_string(gridMapArray[goal.first + cols * goal.second]);
+    //cout << to_string(gridmapocc.data[start.first + cols * start.second]) << endl;
+    cout << goal.first + gridmapocc.info.width * goal.second << endl;
+    cout << gridmapocc.info.height << endl;
+    cout << gridmapocc.info.width << endl;
+    cout << gridmapocc.data.size() << endl;
+    //cout << to_string(gridmapocc.data[goal.second* gridmapocc.info.width + goal.first])  << endl;
+    if (goal.first < 0 || goal.second < 0 || gridmapocc.data[goal.second* gridmapocc.info.width + goal.first] == 100 || goal.first >= gridmapocc.info.width || goal.second >= gridmapocc.info.height) {
+        cerr << "Goal position is not traversable or it is out of bounds. ";
+        
         return false;
     }else std::cout << "Goal position is valid" << endl;
     //std::cout << "Valids" << endl;
