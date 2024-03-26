@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
     GridMap gridMap;
     gridMap.loadImage("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder");
 
-    pair<int, int> start = {320,290};
-    pair<int, int> goal = {1600,290};
+    pair<int, int> start = {127,0};  
+    pair<int, int> goal = {560,950};
     gridMap.setStartGoal(start,goal);
 
 
@@ -75,21 +75,13 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
 
-    ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>("map",20);
+    ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>("map",10);
     vector<pair<int, int>> path_;
 
-    ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("path", 20);
+    ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("path", 10);
 
-    // Define the topic name
-   // std::string topic_name = "gridmap";
-
-    // Create a publisher for UInt8MultiArray messages
-    //ros::Publisher pub = nh.advertise<std_msgs::UInt8MultiArray>(topic_name, 10);
-    //ros::Publisher pub2 = nh.advertise<std_msgs::Int32MultiArray>("rowscols", 10);
-
-
-    ////////////////////////////////////////////
-    cv::Mat img = cv::imread("/ros_controller/src/img_folder/labirinto.jpg", cv::IMREAD_GRAYSCALE);
+    
+    cv::Mat img = cv::imread("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder/labirinto.jpg", cv::IMREAD_GRAYSCALE);
     if(img.empty()){
         ROS_ERROR("Failed to load img");
         return -1;
@@ -98,7 +90,7 @@ int main(int argc, char** argv) {
     
     nav_msgs::OccupancyGrid grid = imageToOccupancyGrid(img);
     gridMap.setOccupancy(grid);
-    gridMap.computeDistanceMap(grid);
+    gridMap.computeDistanceMap();
 
 
     path_ = gridMap.findPath(start,goal);
@@ -114,23 +106,17 @@ int main(int argc, char** argv) {
     while (ros::ok())
     {   
         map_pub.publish(grid);
-        // Create the message object
-        std_msgs::UInt8MultiArray matrix_msg;
-        matrix_msg.data = gridMap.gridMapArray;
-
-        // Create the message object
-        std_msgs::Int32MultiArray rowsAndColsMsg;
-        rowsAndColsMsg.data = rowsAndCols;
+        
         
 
-
+        /*
         nav_msgs::OccupancyGrid grid_msg;
         grid_msg.header.stamp = ros::Time::now();
-        grid_msg.header.frame_id = "map";  // or any other frame in which the path is defined
+        grid_msg.header.frame_id = "map"; 
 
         // Set the grid size
-        grid_msg.info.width = rowsAndColsMsg.data[0];
-        grid_msg.info.height = rowsAndColsMsg.data[1];
+        grid_msg.info.width = rowsAndCols[0];
+        grid_msg.info.height = rowsAndCols[1];
 
         // Set the grid resolution (e.g., in meters/cell)
         grid_msg.info.resolution = 1.0;
@@ -142,10 +128,13 @@ int main(int argc, char** argv) {
         grid_msg.data.resize(grid_msg.info.width * grid_msg.info.height,0);
 
         // Fill the grid with the path data
-        for (const auto& point : path_) {
+        /*for (const auto& point : path.poses) {
             // Assuming that 'point' is a pair (x, y)
+            
 
-            int index = point.first + point.second * rowsAndColsMsg.data[0];
+            const auto& pose = point.pose.position;
+            int index = pose.x + pose.y * rowsAndCols[0];
+
 
             
             // Set the cell at the calculated index to occupied
@@ -155,17 +144,17 @@ int main(int argc, char** argv) {
 
         // Publish the OccupancyGrid message
         map_pub.publish(grid_msg);
-
-
+        */
+        
         nav_msgs::Path path_msg;
             path_msg.header.stamp = ros::Time::now();
             path_msg.header.frame_id = "map";
-            for (const auto& point : path_) {
+            for (const auto& point : path.poses) {
                 geometry_msgs::PoseStamped pose;
                 pose.header.stamp = ros::Time::now();
                 pose.header.frame_id = "map";
-                pose.pose.position.x = point.second;
-                pose.pose.position.y = rowsAndCols[0] - point.first;
+                pose.pose.position.y = point.pose.position.y;
+                pose.pose.position.x = rowsAndCols[0] - point.pose.position.x;
                 pose.pose.orientation.w = 1.0;
                 path_msg.poses.push_back(pose);
             }

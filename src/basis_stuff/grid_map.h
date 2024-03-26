@@ -34,15 +34,13 @@ struct GridMap{
     void loadImage(const fs::path& folderName);
     fs::path findImage(const fs::path& folder);
     void processImage(const cv::Mat& img);
-    void computeDistanceMap(nav_msgs::OccupancyGrid gridmapocc);
+    void computeDistanceMap();
     void convertDistanceMap(const cv::Mat& distanceTransform);
-    void displayDistanceMap();
     bool checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal); 
     vector<pair<int, int>> findPath(pair<int, int> Start, pair<int, int> Goal);
     int actionCost(int x,int y);
     bool isValid(int x,int y);
     int heuristic(int x,int y);
-    void displayPath(vector<pair<int, int>> path);
     void setStartGoal(pair<int, int> start, pair<int, int> goal);
     void setOccupancy(nav_msgs::OccupancyGrid grid);
   
