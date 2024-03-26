@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
     GridMap gridMap;
     gridMap.loadImage("/home/lattinone/catkin_ws/ws_rp/src/ros_controller/src/img_folder");
 
-    pair<int, int> start = {127,0};  
-    pair<int, int> goal = {560,950};
+    pair<int, int> start = {127,200};  
+    pair<int, int> goal = {1570,1700};
     gridMap.setStartGoal(start,goal);
 
 
@@ -107,8 +107,6 @@ int main(int argc, char** argv) {
     {   
         map_pub.publish(grid);
         
-        
-
         /*
         nav_msgs::OccupancyGrid grid_msg;
         grid_msg.header.stamp = ros::Time::now();
@@ -154,7 +152,7 @@ int main(int argc, char** argv) {
                 pose.header.stamp = ros::Time::now();
                 pose.header.frame_id = "map";
                 pose.pose.position.y = point.pose.position.y;
-                pose.pose.position.x = rowsAndCols[0] - point.pose.position.x;
+                pose.pose.position.x = point.pose.position.x;
                 pose.pose.orientation.w = 1.0;
                 path_msg.poses.push_back(pose);
             }
