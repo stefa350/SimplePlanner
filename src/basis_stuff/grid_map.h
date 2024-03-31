@@ -28,9 +28,7 @@ struct GridMap{
     GridMap();
 
     void cv2vec(const cv::Mat& src, std::vector<uint8_t>& dst);
-    void vec2cv(const std::vector<uint8_t>& src, cv::Mat& dst);
     bool isImageFile(const fs::path& filePath);
-    void loadFromVec(vector<uint8_t>,int rows,int cols);
     void loadImage(const fs::path& folderName);
     fs::path findImage(const fs::path& folder);
     void processImage(const cv::Mat& img);

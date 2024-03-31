@@ -10,6 +10,47 @@ GridMap::GridMap(){
     std::cout << "Initializing the GridMap..." << endl;
 };
 
+void GridMap::loadImage(const fs::path& folder){
+    fs::path imgPath = findImage(folder);
+    if(!imgPath.empty()){
+        std::cout << "Image found: " << imgPath <<endl;
+        cv::Mat loadedImg = cv::imread(imgPath.string(), cv::IMREAD_GRAYSCALE);
+        if(loadedImg.empty()){
+            throw runtime_error("Error loading the image");
+        }else{
+            std::cout << "Image loaded successfully" << endl;
+            processImage(loadedImg);
+        }
+    } else {
+        cerr << "No image found in the specified folder" << endl;
+    }
+   
+}
+
+
+fs::path GridMap::findImage(const fs::path& folder){
+    for (const auto& entry : fs::directory_iterator(folder)) {
+        if (isImageFile(entry.path()) && fs::is_regular_file(entry.path())) {
+            return entry.path();
+        }
+    }
+    return fs::path();
+}
+
+bool GridMap::isImageFile(const fs::path& filePath) {
+
+    std::string extension = filePath.extension().string();
+    return (extension == ".png" || extension == ".jpeg" || extension == ".jpg" || extension == ".bmp" || extension == ".gif");
+};
+
+ 
+void GridMap::processImage(const cv::Mat& img) {
+    rows = img.rows;
+    cols = img.cols;
+    cv2vec(img, gridMapArray);
+}
+
+
 void GridMap::cv2vec(const cv::Mat& src, std::vector<uint8_t>& dst) {
         // Assuming src is a grayscale image (single channel)
 
@@ -28,64 +69,21 @@ void GridMap::cv2vec(const cv::Mat& src, std::vector<uint8_t>& dst) {
         }
 }
 
-void GridMap::vec2cv(const std::vector<uint8_t>& src, cv::Mat& dst){
-    // Assuming dst is a grayscale image (single channel)
-    dst.create(rows, cols, CV_8UC1);
 
-    // Convert each pixel from std::vector<uint8_t> to cv::Mat
-    for (int i = 0; i < dst.rows; ++i) {
-        for (int j = 0; j < dst.cols; ++j) {
-            // Copying the pixel value from src to the corresponding location in dst
-            dst.at<uchar>(i, j) = src[i * dst.cols + j];
-        }
-    }
+void GridMap::setStartGoal(pair<int, int> Start, pair<int, int> Goal){
+    start = Start;
+    goal  = Goal;
+    std::cout << start.first << endl;
+    cout << goal.first << endl;
+
 }
 
-bool GridMap::isImageFile(const fs::path& filePath) {
 
-    std::string extension = filePath.extension().string();
-    return (extension == ".png" || extension == ".jpeg" || extension == ".jpg" || extension == ".bmp" || extension == ".gif");
-};
-
-
-void GridMap::loadImage(const fs::path& folder){
-    fs::path imgPath = findImage(folder);
-    if(!imgPath.empty()){
-        std::cout << "Image found: " << imgPath <<endl;
-        cv::Mat loadedImg = cv::imread(imgPath.string(), cv::IMREAD_GRAYSCALE);
-        if(loadedImg.empty()){
-            throw runtime_error("Error loading the image");
-        }else{
-            std::cout << "Image loaded successfully" << endl;
-            processImage(loadedImg);
-        }
-    } else {
-        cerr << "No image found in the specified folder" << endl;
-    }
-   
+void GridMap::setOccupancy(nav_msgs::OccupancyGrid grid){
+    gridmapocc = grid;
+    
 }
 
-fs::path GridMap::findImage(const fs::path& folder){
-    for (const auto& entry : fs::directory_iterator(folder)) {
-        if (isImageFile(entry.path()) && fs::is_regular_file(entry.path())) {
-            return entry.path();
-        }
-    }
-    return fs::path();
-}
- 
-void GridMap::processImage(const cv::Mat& img) {
-    rows = img.rows;
-    cols = img.cols;
-    cv2vec(img, gridMapArray);
-}
-
-void GridMap::loadFromVec(std::vector<uint8_t> src, int Rows,int Cols){
-    gridMapArray = src;
-    rows = Rows;
-    cols = Cols;
-    vec2cv(gridMapArray,gridMapImage);
-}
 
 
 void GridMap::computeDistanceMap() {
@@ -100,15 +98,9 @@ void GridMap::computeDistanceMap() {
 
     // Calcola la trasformata di distanza
     cv::Mat distance;
+    //calcola la trasformata della distanza
     cv::distanceTransform(gridMapCV, distance, cv::DIST_L2, cv::DIST_MASK_PRECISE);
     cv::minMaxLoc(distance, &minDist, &maxDist);
-
-    distanceMap.resize(distance.rows, distance.cols);
-    for (int i = 0; i < distance.rows; ++i) {
-        for (int j = 0; j < distance.cols; ++j) {
-            distanceMap(i, j) = distance.at<float>(i, j);
-        }
-    }
 
     // Converti la trasformata di distanza nel formato Eigen
     convertDistanceMap(distance);
@@ -122,19 +114,6 @@ void GridMap::convertDistanceMap(const cv::Mat& distanceTransform) {
             distanceMap(i, j) = distanceTransform.at<float>(i, j);
         }
     }
-}
-
-void GridMap::setStartGoal(pair<int, int> Start, pair<int, int> Goal){
-    start = Start;
-    goal  = Goal;
-    std::cout << start.first << endl;
-    cout << goal.first << endl;
-
-}
-
-void GridMap::setOccupancy(nav_msgs::OccupancyGrid grid){
-    gridmapocc = grid;
-    
 }
 
 
@@ -160,26 +139,17 @@ int GridMap::heuristic(int x,int y){
 }
 
 bool GridMap::checkValidStartAndGoal(pair<int, int> start, pair<int, int> goal) {
-    //cerr << "start.first: " << goal.first << ", start.second: " << goal.second << ", cols: " << cols << endl;
-    //cerr << "Data size: " << gridmapocc.data.size() << endl; // Assicurati che ci siano dati nell'array
-
     if (start.first < 0 || start.second < 0 || gridmapocc.data[start.first + cols * start.second] == 100 || start.first >= gridmapocc.info.width || start.second >= gridmapocc.info.height) {
         cerr << "Start position is not traversable or it is out of bounds. ";
-        
         return false;
     }else std::cout << "Start position is valid" << endl;
-    //cout << to_string(gridmapocc.data[start.first + cols * start.second]) << endl;
-    cout << goal.first + gridmapocc.info.width * goal.second << endl;
-    cout << gridmapocc.info.height << endl;
-    cout << gridmapocc.info.width << endl;
-    cout << gridmapocc.data.size() << endl;
-    //cout << to_string(gridmapocc.data[goal.second* gridmapocc.info.width + goal.first])  << endl;
+    
     if (goal.first < 0 || goal.second < 0 || gridmapocc.data[goal.second* gridmapocc.info.width + goal.first] == 100 || goal.first >= gridmapocc.info.width || goal.second >= gridmapocc.info.height) {
         cerr << "Goal position is not traversable or it is out of bounds. ";
         
         return false;
     }else std::cout << "Goal position is valid" << endl;
-    //std::cout << "Valids" << endl;
+    
     return true;
 }
 
@@ -195,7 +165,7 @@ vector<pair<int, int>> GridMap::findPath(pair<int, int> Start, pair<int, int> Go
         
         vector<vector<pair<int, int>>> parent(rows, vector<pair<int, int>>(cols, {-1, -1}));
 
-        //gscore = the cost from getting from start node to that node
+        //gscore = the cost from getting from start node to current node
         vector<vector<int>> gScore(rows, vector<int>(cols, INT_MAX));
         
         
