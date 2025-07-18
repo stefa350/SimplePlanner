@@ -9,15 +9,15 @@ Given an image representing a maze or a gridmap, the planner computes a path fro
 **Terminal 1:**
 ```bash
 roscore
-
+```
 **Terminal 2:**
 ```bash
 rosrun rviz rviz
-
+```
 **Terminal 3:**
 ```bash
 rosrun ros_controller node_gridmap
-
+```
 Once you are in rviz you have to add by topic the map and the path, you can set the view to some values like x: 640, y:640, z:1280.
 
 If roscore/rosrun doesn't work, use this command in each terminal:
